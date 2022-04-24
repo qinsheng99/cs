@@ -4,7 +4,6 @@ import (
 	"cve-sa-backend/iniconf"
 	"cve-sa-backend/models"
 	"cve-sa-backend/utils"
-	_const "cve-sa-backend/utils/const"
 	cveSa "cve-sa-backend/utils/entity/cve_sa"
 
 	"gorm.io/gorm"
@@ -18,7 +17,7 @@ var DefaultSecurityNotice = securityNotice{}
 
 func (s securityNotice) SecurityFindAll(req cveSa.RequestData) (datas []models.CveSecurityNotice, total int64, err error) {
 	q := iniconf.DB
-	page, size := getPage(req.Pages)
+	page, size := utils.GetPage(req.Pages)
 	query := q.Model(&models.CveSecurityNotice{})
 	if req.KeyWord != "" {
 		query = query.Where(
@@ -124,19 +123,4 @@ func (s securityNotice) DeleteSecurity(id int64, tx *gorm.DB) (err error) {
 func (s securityNotice) CreateSecurity(data models.CveSecurityNotice, tx *gorm.DB) (err error) {
 	err = tx.Model(&models.CveSecurityNotice{}).Create(&data).Error
 	return
-}
-
-func getPage(req cveSa.Pages) (int, int) {
-	var page, size int
-	if req.Page == 0 {
-		page = _const.Page
-	} else {
-		page = req.Page
-	}
-	if req.Size == 0 {
-		size = _const.Size
-	} else {
-		size = req.Size
-	}
-	return page, size
 }

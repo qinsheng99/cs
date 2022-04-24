@@ -22,3 +22,8 @@ type DriverEsData struct {
 	Version      string `json:"version"`
 	Updateime    string `json:"updateTime"`
 }
+
+type DriverEsDataResp struct {
+	Total  int64          `json:"total"`
+	Driver []DriverEsData `json:"driver"`
+}

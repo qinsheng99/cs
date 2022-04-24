@@ -18,7 +18,7 @@ var DefaultCveDatabase = cveDatabase{}
 
 func (c cveDatabase) DatabaseFindAll(req cveSa.RequestData) (datas []models.CveDatabase, total int64, err error) {
 	q := iniconf.DB
-	page, size := getPage(req.Pages)
+	page, size := utils.GetPage(req.Pages)
 	query := q.Model(&models.CveDatabase{})
 	if req.KeyWord != "" {
 		query = query.Where(

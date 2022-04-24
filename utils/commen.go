@@ -7,6 +7,7 @@ import (
 	"time"
 
 	_const "cve-sa-backend/utils/const"
+	cveSa "cve-sa-backend/utils/entity/cve_sa"
 
 	"gorm.io/gorm"
 )
@@ -151,4 +152,19 @@ func InterfaceToString(i interface{}) string {
 	default:
 		return ""
 	}
+}
+
+func GetPage(req cveSa.Pages) (int, int) {
+	var page, size int
+	if req.Page == 0 {
+		page = _const.Page
+	} else {
+		page = req.Page
+	}
+	if req.Size == 0 {
+		size = _const.Size
+	} else {
+		size = req.Size
+	}
+	return page, size
 }

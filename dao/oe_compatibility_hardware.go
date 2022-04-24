@@ -37,7 +37,7 @@ func (c compatibilityHardware) FindAllHardware(req cveSa.OeCompSearchRequest) (d
 	q := iniconf.DB
 	query := q.Model(&models.OeCompatibilityHardware{})
 
-	page, size := getPage(req.Pages)
+	page, size := utils.GetPage(req.Pages)
 	if req.Architecture != "" {
 		query = query.Where("architecture = ?", req.Architecture)
 	}

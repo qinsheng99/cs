@@ -17,7 +17,7 @@ var DefaultCompatibilityOsv = compatibilityOsv{}
 
 func (c compatibilityOsv) OSVFindAll(req cveSa.RequestOsv) (datas []models.OeCompatibilityOsv, total int64, err error) {
 	q := iniconf.DB
-	page, size := getPage(req.Pages)
+	page, size := utils.GetPage(req.Pages)
 	query := q.Model(&models.OeCompatibilityOsv{})
 	if req.KeyWord != "" {
 		query = query.Where(

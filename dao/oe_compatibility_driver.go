@@ -3,6 +3,7 @@ package dao
 import (
 	"cve-sa-backend/iniconf"
 	"cve-sa-backend/models"
+	"cve-sa-backend/utils"
 	cveSa "cve-sa-backend/utils/entity/cve_sa"
 
 	"gorm.io/gorm"
@@ -39,7 +40,7 @@ func (c compatibilityDriver) GetArchitectureList(lang string) (data []string, er
 func (c compatibilityDriver) FindAllDriver(req cveSa.OeCompSearchRequest) (datas []models.OeCompatibilityDriver, total int64, err error) {
 	q := iniconf.DB
 	query := q.Model(&models.OeCompatibilityDriver{})
-	page, size := getPage(req.Pages)
+	page, size := utils.GetPage(req.Pages)
 	if req.Os != "" {
 		query = query.Where("os = ?", req.Os)
 	}
@@ -66,7 +67,7 @@ func (c compatibilityDriver) FindAllDriver(req cveSa.OeCompSearchRequest) (datas
 	if total == 0 {
 		return
 	}
-	query = query.Order("architecture desc").Limit(size).Offset((page - 1) * size)
+	query = query.Order("id desc").Limit(size).Offset((page - 1) * size)
 	if err = query.Find(&datas).Error; err != nil {
 		iniconf.SLog.Error(err)
 		return
