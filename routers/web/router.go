@@ -1,7 +1,9 @@
 package routers
 
 import (
-	controllers "cve-sa-backend/controllers/web"
+	"cve-sa-backend/controllers"
+	"cve-sa-backend/controllers/web"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -10,44 +12,50 @@ func WebRouters(r *gin.Engine) {
 	website := r.Group("/cve-security-notice-server")
 	{
 		cve := website.Group("/cvedatabase")
-		{
-			cve.POST("/findAll", controllers.FindAllCVEDatabase)
-			cve.GET("/getByCveIdAndPackageName", controllers.GetByCveIdAndPackageName)
-			cve.GET("/getPackageByCveId", controllers.GetCVEProductPackageListByCveId)
-			cve.GET("/getCVEProductPackageList", controllers.GetCVEProductPackageList)
-		}
+		cveCon := controllers.Con.Web.CveDatabaseCon
+		func(cveCon web.CveDatabaseCon) {
+			cve.POST("/findAll", cveCon.FindAllCVEDatabase)
+			cve.GET("/getByCveIdAndPackageName", cveCon.GetByCveIdAndPackageName)
+			cve.GET("/getPackageByCveId", cveCon.GetCVEProductPackageListByCveId)
+			cve.GET("/getCVEProductPackageList", cveCon.GetCVEProductPackageList)
+		}(cveCon)
+
 		securityNotice := website.Group("/securitynotice")
-		{
-			securityNotice.POST("/findAll", controllers.FindAllSecurity)
-			securityNotice.POST("/getPackageLink", controllers.GetSecurityNoticePackageByPackageName)
-			securityNotice.GET("/getByCveId", controllers.NoticeByCVEID)
-			securityNotice.GET("/byCveIdAndAffectedComponent", controllers.ByCveIdAndAffectedComponent)
-			securityNotice.GET("/getBySecurityNoticeNo", controllers.NoticeBySecurityNoticeNo)
-		}
+		securityNoticeCon := controllers.Con.Web.SecurityNoticeCon
+		func(securityNoticeCon web.SecurityNoticeCon) {
+			securityNotice.POST("/findAll", securityNoticeCon.FindAllSecurity)
+			securityNotice.POST("/getPackageLink", securityNoticeCon.GetSecurityNoticePackageByPackageName)
+			securityNotice.GET("/getByCveId", securityNoticeCon.NoticeByCVEID)
+			securityNotice.GET("/byCveIdAndAffectedComponent", securityNoticeCon.ByCveIdAndAffectedComponent)
+			securityNotice.GET("/getBySecurityNoticeNo", securityNoticeCon.NoticeBySecurityNoticeNo)
+		}(securityNoticeCon)
 
 		oeDriverCompatibility := website.Group("/drivercomp")
-		{
-			oeDriverCompatibility.POST("/findAll", controllers.FindAllDriverCompatibility)
-			oeDriverCompatibility.GET("/getOS", controllers.GetOsListForDriver)
-			oeDriverCompatibility.GET("/getArchitecture", controllers.GetArchitectureListForDriver)
-		}
+		oeDriverCompatibilityCon := controllers.Con.Web.DriverCompatibility
+		func(oeDriverCompatibilityCon web.DriverCompatibility) {
+			oeDriverCompatibility.POST("/findAll", oeDriverCompatibilityCon.FindAllDriverCompatibility)
+			oeDriverCompatibility.GET("/getOS", oeDriverCompatibilityCon.GetOsListForDriver)
+			oeDriverCompatibility.GET("/getArchitecture", oeDriverCompatibilityCon.GetArchitectureListForDriver)
+		}(oeDriverCompatibilityCon)
 
 		oeHardwareCompatibility := website.Group("/hardwarecomp")
-		{
-			oeHardwareCompatibility.POST("/findAll", controllers.FindAllHardwareCompatibility)
-			oeHardwareCompatibility.GET("/getOS", controllers.GetOsListForHardware)
-			oeHardwareCompatibility.GET("/getArchitecture", controllers.GetArchitectureListForHardware)
-			oeHardwareCompatibility.GET("/getOne", controllers.GetHardwareCompatibilityById)
-			oeHardwareCompatibility.GET("/getAdapterList", controllers.GetOeHardwareAdapterListByHardwareId)
-			oeHardwareCompatibility.GET("/getCpu", controllers.GetCpu)
-		}
+		oeHardwareCompatibilityCon := controllers.Con.Web.HardwareCompatibility
+		func(oeHardwareCompatibilityCon web.HardwareCompatibility) {
+			oeHardwareCompatibility.POST("/findAll", oeHardwareCompatibilityCon.FindAllHardwareCompatibility)
+			oeHardwareCompatibility.GET("/getOS", oeHardwareCompatibilityCon.GetOsListForHardware)
+			oeHardwareCompatibility.GET("/getArchitecture", oeHardwareCompatibilityCon.GetArchitectureListForHardware)
+			oeHardwareCompatibility.GET("/getOne", oeHardwareCompatibilityCon.GetHardwareCompatibilityById)
+			oeHardwareCompatibility.GET("/getAdapterList", oeHardwareCompatibilityCon.GetOeHardwareAdapterListByHardwareId)
+			oeHardwareCompatibility.GET("/getCpu", oeHardwareCompatibilityCon.GetCpu)
+		}(oeHardwareCompatibilityCon)
 
 		osvCompatibility := website.Group("/osv")
-		{
-			osvCompatibility.POST("/findAll", controllers.FindAllOsv)
-			osvCompatibility.GET("/getOsName", controllers.GetOsvName)
-			osvCompatibility.GET("/getType", controllers.GetType)
-			osvCompatibility.GET("/getOne", controllers.GetOne)
-		}
+		osvCompatibilityCon := controllers.Con.Web.Osv
+		func(osvCompatibilityCon web.Osv) {
+			osvCompatibility.POST("/findAll", osvCompatibilityCon.FindAllOsv)
+			osvCompatibility.GET("/getOsName", osvCompatibilityCon.GetOsvName)
+			osvCompatibility.GET("/getType", osvCompatibilityCon.GetType)
+			osvCompatibility.GET("/getOne", osvCompatibilityCon.GetOne)
+		}(osvCompatibilityCon)
 	}
 }

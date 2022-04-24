@@ -15,12 +15,16 @@ import (
 	_const "cve-sa-backend/utils/const"
 	cveSa "cve-sa-backend/utils/entity/cve_sa"
 	"cve-sa-backend/utils/parsexml"
+
 	"go.uber.org/zap"
 
 	"gorm.io/gorm"
 )
 
-func DeleteCVE(cveId, packageName string) (string, error) {
+type UploadHandle struct {
+}
+
+func (u *UploadHandle) DeleteCVE(cveId, packageName string) (string, error) {
 	tx := DB.Begin()
 	if packageName == "" {
 		//Delete the cve information corresponding to the specified cveId
@@ -32,7 +36,7 @@ func DeleteCVE(cveId, packageName string) (string, error) {
 			return "", errors.New("CVE error")
 		}
 		for _, delCve := range delCves {
-			err = DeleteOneCVE(delCve, tx)
+			err = u.DeleteOneCVE(delCve, tx)
 			if err != nil {
 				tx.Rollback()
 				return "", err
@@ -49,7 +53,7 @@ func DeleteCVE(cveId, packageName string) (string, error) {
 			tx.Rollback()
 			return "", err
 		}
-		err = DeleteOneCVE(*delCve, tx)
+		err = u.DeleteOneCVE(*delCve, tx)
 		if err != nil {
 			tx.Rollback()
 			return "", err
@@ -59,7 +63,7 @@ func DeleteCVE(cveId, packageName string) (string, error) {
 	}
 }
 
-func DeleteOneCVE(delCve models.CveDatabase, tx *gorm.DB) error {
+func (u *UploadHandle) DeleteOneCVE(delCve models.CveDatabase, tx *gorm.DB) error {
 	cveCvrf, err := dao.DefaultCvrf.GetOneCvrf(&models.CveCvrf{
 		CveId:       delCve.CveId,
 		PackageName: delCve.PackageName,
@@ -111,7 +115,7 @@ func DeleteOneCVE(delCve models.CveDatabase, tx *gorm.DB) error {
 	return nil
 }
 
-func DeleteSA(saNo string) error {
+func (u *UploadHandle) DeleteSA(saNo string) error {
 	tx := DB.Begin()
 	delSecurity, err := dao.DefaultSecurityNotice.GetSecurityNotice(&models.CveSecurityNotice{
 		SecurityNoticeNo: saNo,
@@ -176,14 +180,14 @@ func DeleteSA(saNo string) error {
 	return nil
 }
 
-func GetHttpParserBeanListByCve(cve, packageName string) (*models.CveParser, error) {
+func (u *UploadHandle) GetHttpParserBeanListByCve(cve, packageName string) (*models.CveParser, error) {
 	return dao.DefaultCveParser.GetOneParserWithDB(&models.CveParser{
 		Cve:         cve,
 		PackageName: packageName,
 	})
 }
 
-func SyncCve(cveFileName string) (string, error) {
+func (u *UploadHandle) SyncCve(cveFileName string) (string, error) {
 	fileByte, err := utils.GetCvrfFile(cveFileName)
 	if err != nil {
 		Log.Error("utils.GetCvrfFile error:", zap.Error(err))
@@ -208,7 +212,7 @@ func SyncCve(cveFileName string) (string, error) {
 		list = append(list, cve)
 	}
 	tx := DB.Begin()
-	err = SaveAndDeleteCveList(list, tx)
+	err = u.SaveAndDeleteCveList(list, tx)
 	if err != nil {
 		Log.Error("SaveAndDeleteCveList error:", zap.Error(err))
 		tx.Rollback()
@@ -218,7 +222,7 @@ func SyncCve(cveFileName string) (string, error) {
 	return "CVE sync successfully" + "<br/>", nil
 }
 
-func SaveAndDeleteCveList(list []cveSa.DatabaseData, tx *gorm.DB) error {
+func (u *UploadHandle) SaveAndDeleteCveList(list []cveSa.DatabaseData, tx *gorm.DB) error {
 	for _, v := range list {
 		err := dao.DefaultCvrf.DeleteByCveIdAndPackageName(v.Cvrf.CveId, v.Cvrf.PackageName, tx)
 		if err != nil {
@@ -280,10 +284,10 @@ func SaveAndDeleteCveList(list []cveSa.DatabaseData, tx *gorm.DB) error {
 	return nil
 }
 
-func SyncHardwareCompatibility() (string, error) {
+func (u *UploadHandle) SyncHardwareCompatibility() (string, error) {
 	var listZh, listEn []*cveSa.HardwareCompatibility
 	var err error
-	listZh, err = parserHardwareCompatibility("zh")
+	listZh, err = u.parserHardwareCompatibility("zh")
 	if err != nil {
 		return fmt.Sprint("获取数据失败:"), err
 	}
@@ -294,15 +298,15 @@ func SyncHardwareCompatibility() (string, error) {
 			tx.Rollback()
 			return "", err
 		}
-		assemblyHardware(listZh, "zh")
-		err = saveList(listZh, tx)
+		u.assemblyHardware(listZh, "zh")
+		err = u.saveList(listZh, tx)
 		if err != nil {
 			tx.Rollback()
 			return "", err
 		}
 	}
 
-	listEn, err = parserHardwareCompatibility("en")
+	listEn, err = u.parserHardwareCompatibility("en")
 	if err != nil {
 		return fmt.Sprint("获取数据失败:"), err
 	}
@@ -313,8 +317,8 @@ func SyncHardwareCompatibility() (string, error) {
 			tx.Rollback()
 			return "", err
 		}
-		assemblyHardware(listEn, "en")
-		err = saveList(listEn, tx)
+		u.assemblyHardware(listEn, "en")
+		err = u.saveList(listEn, tx)
 		if err != nil {
 			tx.Rollback()
 			return "", err
@@ -325,7 +329,7 @@ func SyncHardwareCompatibility() (string, error) {
 }
 
 // parserHardwareCompatibility Request zh or en json data, and json unmarshal cveSa.HardwareCompatibility
-func parserHardwareCompatibility(lang string) ([]*cveSa.HardwareCompatibility, error) {
+func (u *UploadHandle) parserHardwareCompatibility(lang string) ([]*cveSa.HardwareCompatibility, error) {
 	var bytes []byte
 	var err error
 	switch lang {
@@ -357,7 +361,7 @@ func parserHardwareCompatibility(lang string) ([]*cveSa.HardwareCompatibility, e
 }
 
 // assemblyHardware assembly oe_compatibility_hardware insert datas
-func assemblyHardware(datas []*cveSa.HardwareCompatibility, lang string) {
+func (u *UploadHandle) assemblyHardware(datas []*cveSa.HardwareCompatibility, lang string) {
 	timeStr := utils.GetCurTime()
 	for k := range datas {
 		data := datas[k]
@@ -379,7 +383,7 @@ func assemblyHardware(datas []*cveSa.HardwareCompatibility, lang string) {
 		data.OeCompatibilityHardware.Lang = lang
 	}
 }
-func saveList(datas []*cveSa.HardwareCompatibility, tx *gorm.DB) error {
+func (u *UploadHandle) saveList(datas []*cveSa.HardwareCompatibility, tx *gorm.DB) error {
 	for k := range datas {
 		hardware := datas[k]
 		list := hardware.OeCompatibilityHardware
@@ -402,10 +406,10 @@ func saveList(datas []*cveSa.HardwareCompatibility, tx *gorm.DB) error {
 	return nil
 }
 
-func SyncDriverCompatibility() (string, error) {
+func (u *UploadHandle) SyncDriverCompatibility() (string, error) {
 	var listZh, listEn []models.OeCompatibilityDriverResponse
 	var err error
-	listZh, err = parserOEDriverCompatibility("zh")
+	listZh, err = u.parserOEDriverCompatibility("zh")
 	if err != nil {
 		return fmt.Sprint("获取数据失败:"), err
 	}
@@ -416,7 +420,7 @@ func SyncDriverCompatibility() (string, error) {
 			tx.Rollback()
 			return "", err
 		}
-		drivers := assemblyDriver(listZh, "zh")
+		drivers := u.assemblyDriver(listZh, "zh")
 		err = dao.DefaultCompatibilityDriver.CreateDriver(drivers, tx)
 		if err != nil {
 			tx.Rollback()
@@ -424,7 +428,7 @@ func SyncDriverCompatibility() (string, error) {
 		}
 	}
 
-	listEn, err = parserOEDriverCompatibility("en")
+	listEn, err = u.parserOEDriverCompatibility("en")
 	if err != nil {
 		return fmt.Sprint("获取数据失败:"), err
 	}
@@ -434,7 +438,7 @@ func SyncDriverCompatibility() (string, error) {
 			tx.Rollback()
 			return "", err
 		}
-		drivers := assemblyDriver(listEn, "en")
+		drivers := u.assemblyDriver(listEn, "en")
 		err = dao.DefaultCompatibilityDriver.CreateDriver(drivers, tx)
 		if err != nil {
 			tx.Rollback()
@@ -445,7 +449,7 @@ func SyncDriverCompatibility() (string, error) {
 	return "success", nil
 }
 
-func parserOEDriverCompatibility(lang string) ([]models.OeCompatibilityDriverResponse, error) {
+func (u *UploadHandle) parserOEDriverCompatibility(lang string) ([]models.OeCompatibilityDriverResponse, error) {
 	var bytes []byte
 	var err error
 	switch lang {
@@ -476,16 +480,16 @@ func parserOEDriverCompatibility(lang string) ([]models.OeCompatibilityDriverRes
 	return datas, nil
 }
 
-func assemblyDriver(datas []models.OeCompatibilityDriverResponse, lang string) []models.OeCompatibilityDriver {
+func (u *UploadHandle) assemblyDriver(datas []models.OeCompatibilityDriverResponse, lang string) []models.OeCompatibilityDriver {
 	var list = make([]models.OeCompatibilityDriver, 0, len(datas))
 	timeStr := utils.GetCurTime()
 	for _, v := range datas {
-		list = append(list, joinDriver(v, timeStr, lang))
+		list = append(list, u.joinDriver(v, timeStr, lang))
 	}
 	return list
 }
 
-func joinDriver(data models.OeCompatibilityDriverResponse, timeStr, lang string) models.OeCompatibilityDriver {
+func (u *UploadHandle) joinDriver(data models.OeCompatibilityDriverResponse, timeStr, lang string) models.OeCompatibilityDriver {
 	return models.OeCompatibilityDriver{
 		Architecture: data.Architecture,
 		BoardModel:   data.BoardModel,
@@ -509,7 +513,7 @@ func joinDriver(data models.OeCompatibilityDriverResponse, timeStr, lang string)
 	}
 }
 
-func TransferData(cve string) (string, error) {
+func (u *UploadHandle) TransferData(cve string) (string, error) {
 	tx := DB.Begin()
 	switch cve {
 	case "SAreference":
@@ -593,7 +597,7 @@ func TransferData(cve string) (string, error) {
 					}
 					snr := models.CveSecurityNoticePackage{}
 					snr.SecurityNoticeNo = v.SecurityNoticeNo
-					snr.PackageType = getPackageType(s)
+					snr.PackageType = u.getPackageType(s)
 					snr.ProductName = v.AffectedProduct
 					snr.PackageName = utils.TrimStringNR(s)
 					snr.Updateime = v.Updateime
@@ -632,7 +636,7 @@ func TransferData(cve string) (string, error) {
 	}
 	return "success", nil
 }
-func getPackageType(s string) string {
+func (u *UploadHandle) getPackageType(s string) string {
 	if strings.Contains(s, ".src.rpm") {
 		return "src"
 	} else if strings.Contains(s, "aarch64.rpm") {
@@ -646,8 +650,8 @@ func getPackageType(s string) string {
 	}
 }
 
-func SyncSA(saFileName string) (string, error) {
-	security, err := ParserSA(saFileName)
+func (u *UploadHandle) SyncSA(saFileName string) (string, error) {
+	security, err := u.ParserSA(saFileName)
 	if err != nil {
 		SLog.Error("syncSA ", err)
 		return "SyncSA failed. parser exception occurred. error message:" + err.Error(), err
@@ -761,7 +765,7 @@ func SyncSA(saFileName string) (string, error) {
 		}
 	}
 	if len(security.CveList) > 0 {
-		err = SaveAndDeleteCveList(security.CveList, tx)
+		err = u.SaveAndDeleteCveList(security.CveList, tx)
 		if err != nil {
 			tx.Rollback()
 			return rSyncSA(err), err
@@ -774,7 +778,7 @@ func SyncSA(saFileName string) (string, error) {
 func rSyncSA(err error) string {
 	return "SyncSA failed. database exception occurred. error message:" + err.Error()
 }
-func ParserSA(url string) (*cveSa.SecurityNoticeData, error) {
+func (u *UploadHandle) ParserSA(url string) (*cveSa.SecurityNoticeData, error) {
 	var security = new(cveSa.SecurityNoticeData)
 	var cveList = make([]cveSa.DatabaseData, 0)
 	now := time.Now()
@@ -789,13 +793,13 @@ func ParserSA(url string) (*cveSa.SecurityNoticeData, error) {
 		return nil, err
 	}
 
-	err = setRevisionHistory(security, element.DocumentTracking)
+	err = u.setRevisionHistory(security, element.DocumentTracking)
 	if err != nil {
 		return nil, err
 	}
-	setSecurity(security, element.DocumentNotes)
-	setReference(security, element.DocumentReferences, now)
-	setProduct(security, element.ProductTree, now)
+	u.setSecurity(security, element.DocumentNotes)
+	u.setReference(security, element.DocumentReferences, now)
+	u.setProduct(security, element.ProductTree, now)
 	for _, v := range element.Vulnerability {
 		cve, err := parsexml.GetCVEDatabase(security.SecurityNoticeNo, security.AffectedComponent, v, now)
 		if err != nil {
@@ -814,7 +818,7 @@ func ParserSA(url string) (*cveSa.SecurityNoticeData, error) {
 	return security, nil
 }
 
-func setRevisionHistory(security *cveSa.SecurityNoticeData, child utils.DocumentTracking) error {
+func (u *UploadHandle) setRevisionHistory(security *cveSa.SecurityNoticeData, child utils.DocumentTracking) error {
 	security.SecurityNoticeNo = child.Identification.ID
 	var listm = make([]map[string]string, 0)
 	for _, v := range child.RevisionHistory.Revision {
@@ -834,7 +838,7 @@ func setRevisionHistory(security *cveSa.SecurityNoticeData, child utils.Document
 	return nil
 }
 
-func setSecurity(security *cveSa.SecurityNoticeData, child utils.DocumentNotes) {
+func (u *UploadHandle) setSecurity(security *cveSa.SecurityNoticeData, child utils.DocumentNotes) {
 	for _, v := range child.Note {
 		if v.Title == _const.Synopsis {
 			security.Summary = v.Note
@@ -857,7 +861,7 @@ func setSecurity(security *cveSa.SecurityNoticeData, child utils.DocumentNotes) 
 	}
 }
 
-func setReference(security *cveSa.SecurityNoticeData, child utils.DocumentReferences, time time.Time) {
+func (u *UploadHandle) setReference(security *cveSa.SecurityNoticeData, child utils.DocumentReferences, time time.Time) {
 	var referenceList = make([]models.RCveSecurityNoticeReference, 0)
 	var cveId = ""
 	for _, v := range child.Reference {
@@ -882,7 +886,7 @@ func setReference(security *cveSa.SecurityNoticeData, child utils.DocumentRefere
 	security.ReferenceList = referenceList
 }
 
-func setProduct(security *cveSa.SecurityNoticeData, child utils.ProductTree, time time.Time) {
+func (u *UploadHandle) setProduct(security *cveSa.SecurityNoticeData, child utils.ProductTree, time time.Time) {
 	var packageList = make([]models.RCveSecurityNoticePackage, 0)
 	var productName = ""
 	var cpeProductMap = make(map[string]string, 8)
@@ -899,7 +903,7 @@ func setProduct(security *cveSa.SecurityNoticeData, child utils.ProductTree, tim
 				snp.SecurityNoticeNo = security.SecurityNoticeNo
 				snp.PackageName = full.ProductName
 				snp.PackageType = name
-				snp.ProductName = getOrDefault(cpeProductMap, full.CPE, "")
+				snp.ProductName = u.getOrDefault(cpeProductMap, full.CPE, "")
 				snp.CveSecurityNoticePackage.Updateime = time
 				packageList = append(packageList, snp)
 			}
@@ -912,7 +916,7 @@ func setProduct(security *cveSa.SecurityNoticeData, child utils.ProductTree, tim
 	security.PackageList = packageList
 }
 
-func getOrDefault(m map[string]string, key, defaultV string) string {
+func (u *UploadHandle) getOrDefault(m map[string]string, key, defaultV string) string {
 	if value, ok := m[key]; ok {
 		return value
 	}
@@ -922,7 +926,7 @@ func getOrDefault(m map[string]string, key, defaultV string) string {
 func rSyncAll() string {
 	return "SyncAll failed. An exception occurred."
 }
-func SyncAll() (string, error) {
+func (u *UploadHandle) SyncAll() (string, error) {
 	var result string
 	var err error
 	tx := DB.Begin()
@@ -954,7 +958,7 @@ func SyncAll() (string, error) {
 		}
 		SLog.Info("=====>>>>>sync:" + cvrfFileUnaffect)
 		if cvrfFileUnaffect != "" && strings.HasSuffix(cvrfFileUnaffect, ".xml") {
-			result, err = SyncCve(cvrfFileUnaffect)
+			result, err = u.SyncCve(cvrfFileUnaffect)
 			if err != nil {
 				return rSyncAll(), err
 			}
@@ -984,7 +988,7 @@ func SyncAll() (string, error) {
 			arr := strings.Split(cvrfFileFixed, "\n")
 			for _, v := range arr {
 				if strings.HasSuffix(v, ".xml") {
-					result, _ = SyncSA(v)
+					result, _ = u.SyncSA(v)
 					if strings.Index(result, "successfully") == -1 {
 						SLog.Error("===>>>update_fixed.txt failed ,message:" + result)
 						break
@@ -1008,11 +1012,11 @@ func SyncAll() (string, error) {
 	return result, nil
 }
 
-func SyncOsv() (string, error) {
+func (u *UploadHandle) SyncOsv() (string, error) {
 	var tools, platform []byte
 	var ok bool
 	t := time.Now()
-	osvList, err := parserOsv()
+	osvList, err := u.parserOsv()
 	if err != nil {
 		return fmt.Sprint("获取数据失败:"), err
 	}
@@ -1075,7 +1079,7 @@ func SyncOsv() (string, error) {
 	return "success", nil
 }
 
-func parserOsv() ([]cveSa.Osv, error) {
+func (u *UploadHandle) parserOsv() ([]cveSa.Osv, error) {
 	bytes, err := utils.HTTPGet(_const.ParserOsvJsonFile)
 	if err != nil {
 		return nil, err

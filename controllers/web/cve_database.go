@@ -1,9 +1,9 @@
-package controllers
+package web
 
 import (
 	"net/http"
 
-	"cve-sa-backend/handles/web"
+	"cve-sa-backend/handles"
 	"cve-sa-backend/iniconf"
 	cveSa "cve-sa-backend/utils/entity/cve_sa"
 	"cve-sa-backend/utils/tools"
@@ -12,7 +12,10 @@ import (
 	"github.com/gin-gonic/gin/binding"
 )
 
-func FindAllCVEDatabase(c *gin.Context) {
+type CveDatabaseCon struct {
+}
+
+func (cv *CveDatabaseCon) FindAllCVEDatabase(c *gin.Context) {
 	var req cveSa.RequestData
 
 	if err := c.ShouldBindWith(&req, binding.JSON); err != nil {
@@ -20,7 +23,7 @@ func FindAllCVEDatabase(c *gin.Context) {
 		tools.QueryFailure(c)
 		return
 	}
-	datas, err := web.FindAllCVEDatabase(req)
+	datas, err := handles.CveDatabaseHandle.FindAllCVEDatabase(req)
 	if err != nil {
 		iniconf.SLog.Error("FindAllCVEDatabase :", err)
 		tools.Failure(c)
@@ -30,7 +33,7 @@ func FindAllCVEDatabase(c *gin.Context) {
 	tools.Success(c, datas)
 }
 
-func GetByCveIdAndPackageName(c *gin.Context) {
+func (cv *CveDatabaseCon) GetByCveIdAndPackageName(c *gin.Context) {
 	cveId, ok := c.GetQuery("cveId")
 	if !ok {
 		c.JSON(http.StatusBadRequest, "Required String parameter 'cveId' is not present")
@@ -42,7 +45,7 @@ func GetByCveIdAndPackageName(c *gin.Context) {
 		return
 	}
 
-	result, err := web.GetByCveIdAndPackageName(cveId, packageName)
+	result, err := handles.CveDatabaseHandle.GetByCveIdAndPackageName(cveId, packageName)
 	if err != nil {
 		tools.Failure(c)
 		return
@@ -52,14 +55,14 @@ func GetByCveIdAndPackageName(c *gin.Context) {
 	return
 }
 
-func GetCVEProductPackageListByCveId(c *gin.Context) {
+func (cv *CveDatabaseCon) GetCVEProductPackageListByCveId(c *gin.Context) {
 	cveId, ok := c.GetQuery("cveId")
 	if !ok {
 		c.JSON(http.StatusBadRequest, "Required String parameter 'cveId' is not present")
 		return
 	}
 
-	result, err := web.GetCVEProductPackageListByCveId(cveId)
+	result, err := handles.CveDatabaseHandle.GetCVEProductPackageListByCveId(cveId)
 	if err != nil {
 		tools.Failure(c)
 		return
@@ -69,7 +72,7 @@ func GetCVEProductPackageListByCveId(c *gin.Context) {
 	return
 }
 
-func GetCVEProductPackageList(c *gin.Context) {
+func (cv *CveDatabaseCon) GetCVEProductPackageList(c *gin.Context) {
 	cveId, ok := c.GetQuery("cveId")
 	if !ok {
 		c.JSON(http.StatusBadRequest, "Required String parameter 'cveId' is not present")
@@ -81,7 +84,7 @@ func GetCVEProductPackageList(c *gin.Context) {
 		return
 	}
 
-	result, err := web.GetCVEProductPackageList(cveId, packageName)
+	result, err := handles.CveDatabaseHandle.GetCVEProductPackageList(cveId, packageName)
 	if err != nil {
 		tools.Failure(c)
 		return

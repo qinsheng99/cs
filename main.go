@@ -29,6 +29,14 @@ func main() {
 		fmt.Println("gormErr: ", gormErr)
 		return
 	}
+
+	// init mysql
+	esErr := iniconf.InitEs()
+	if esErr != nil {
+		fmt.Println("esErr: ", esErr)
+		return
+	}
+
 	r := gin.Default()
 
 	webRouters.WebRouters(r)

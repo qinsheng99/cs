@@ -7,17 +7,20 @@ import (
 	cveSa "cve-sa-backend/utils/entity/cve_sa"
 )
 
-func FindAllHardwareCompatibility(req cveSa.OeCompSearchRequest) (*cveSa.ResultData, error) {
+type HardwareHandle struct {
+}
+
+func (h *HardwareHandle) FindAllHardwareCompatibility(req cveSa.OeCompSearchRequest) (*cveSa.ResultData, error) {
 	hardware, total, err := dao.DefaultCompatibilityHardware.FindAllHardware(req)
 	if err != nil {
 		iniconf.SLog.Error(err)
 		return nil, err
 	}
 
-	return returnHardware(hardware, total), nil
+	return h.returnHardware(hardware, total), nil
 }
 
-func returnHardware(datas []*models.OeCompatibilityHardware, total int64) *cveSa.ResultData {
+func (h *HardwareHandle) returnHardware(datas []*models.OeCompatibilityHardware, total int64) *cveSa.ResultData {
 	var hardwareCompatibility = make([]cveSa.HardwareCompatibility, 0, len(datas))
 	for _, v := range datas {
 		hardwareCompatibility = append(hardwareCompatibility, cveSa.HardwareCompatibility{
@@ -30,7 +33,7 @@ func returnHardware(datas []*models.OeCompatibilityHardware, total int64) *cveSa
 	}
 }
 
-func GetHardwareCompatibilityById(id int64) (*cveSa.HardwareCompatibility, error) {
+func (h *HardwareHandle) GetHardwareCompatibilityById(id int64) (*cveSa.HardwareCompatibility, error) {
 	data, err := dao.DefaultCompatibilityHardware.GetOneHardware(&models.OeCompatibilityHardware{Id: id})
 	if err != nil {
 		return nil, err
@@ -42,22 +45,22 @@ func GetHardwareCompatibilityById(id int64) (*cveSa.HardwareCompatibility, error
 	return &cveSa.HardwareCompatibility{OeCompatibilityHardware: *data, BoardCards: make([]models.OeCompatibilityHardwareAdapter, 0)}, nil
 }
 
-func GetCpuList(lang string) (datas []string, err error) {
+func (h *HardwareHandle) GetCpuList(lang string) (datas []string, err error) {
 	datas, err = dao.DefaultCompatibilityHardware.GetCpuList(lang)
 	return
 }
 
-func ByhardwareId(hardwareId int64) (datas []models.OeCompatibilityHardwareAdapter, err error) {
+func (h *HardwareHandle) ByhardwareId(hardwareId int64) (datas []models.OeCompatibilityHardwareAdapter, err error) {
 	datas, err = dao.DefaultCompatibilityHardwareAdapter.ByhardwareId(hardwareId)
 	return
 }
 
-func GetOsForHardware(lang string) (datas []string, err error) {
+func (h *HardwareHandle) GetOsForHardware(lang string) (datas []string, err error) {
 	datas, err = dao.DefaultCompatibilityHardware.GetOsForHardware(lang)
 	return
 }
 
-func GetArchitectureListForHardware(lang string) (datas []string, err error) {
+func (h *HardwareHandle) GetArchitectureListForHardware(lang string) (datas []string, err error) {
 	datas, err = dao.DefaultCompatibilityHardware.GetArchitectureListForHardware(lang)
 	return
 }

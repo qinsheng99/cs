@@ -7,17 +7,20 @@ import (
 	cveSa "cve-sa-backend/utils/entity/cve_sa"
 )
 
-func FindAllDriverCompatibility(req cveSa.OeCompSearchRequest) (*cveSa.ResultData, error) {
+type DriverHandle struct {
+}
+
+func (d *DriverHandle) FindAllDriverCompatibility(req cveSa.OeCompSearchRequest) (*cveSa.ResultData, error) {
 	driverCompatibility, total, err := dao.DefaultCompatibilityDriver.FindAllDriver(req)
 	if err != nil {
 		iniconf.SLog.Error(err)
 		return nil, err
 	}
 
-	return returnDriverCompatibility(driverCompatibility, total), nil
+	return d.returnDriverCompatibility(driverCompatibility, total), nil
 }
 
-func returnDriverCompatibility(datas []models.OeCompatibilityDriver, total int64) *cveSa.ResultData {
+func (d *DriverHandle) returnDriverCompatibility(datas []models.OeCompatibilityDriver, total int64) *cveSa.ResultData {
 	if len(datas) == 0 {
 		datas = make([]models.OeCompatibilityDriver, 0)
 	}
@@ -31,12 +34,12 @@ func returnDriverCompatibility(datas []models.OeCompatibilityDriver, total int64
 	}
 }
 
-func GetOsList(lang string) (data []string, err error) {
+func (d *DriverHandle) GetOsList(lang string) (data []string, err error) {
 	data, err = dao.DefaultCompatibilityDriver.GetOsList(lang)
 	return
 }
 
-func GetArchitectureList(lang string) (data []string, err error) {
+func (d *DriverHandle) GetArchitectureList(lang string) (data []string, err error) {
 	data, err = dao.DefaultCompatibilityDriver.GetArchitectureList(lang)
 	return
 }

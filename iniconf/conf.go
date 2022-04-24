@@ -15,7 +15,13 @@ type AkAndSk struct {
 	Point string
 }
 
+type es struct {
+	Host string
+	Port string
+}
+
 var Obs = new(AkAndSk)
+var Es = new(es)
 
 func InitConf() error {
 	var err error
@@ -25,6 +31,12 @@ func InitConf() error {
 		return err
 	}
 	err = initObs()
+	if err != nil {
+		fmt.Println("Fail to Load obs:", err)
+		return err
+	}
+
+	err = initEs()
 	if err != nil {
 		fmt.Println("Fail to Load obs:", err)
 		return err
@@ -44,5 +56,15 @@ func initObs() error {
 	Obs.SK = os.Getenv(sk)
 	Obs.AK = os.Getenv(ak)
 	Obs.Point = endpoint
+	return nil
+}
+
+func initEs() error {
+	logConf, err := Cfg.GetSection("es")
+	if err != nil {
+		return err
+	}
+	Es.Host = logConf.Key("ES_HOST").MustString("localhost")
+	Es.Port = logConf.Key("ES_PORT").MustString("9200")
 	return nil
 }

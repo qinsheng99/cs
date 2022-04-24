@@ -10,17 +10,20 @@ import (
 	cveSa "cve-sa-backend/utils/entity/cve_sa"
 )
 
-func FindAllSecurity(req cveSa.RequestData) (*cveSa.ResultData, error) {
+type SecurityHandle struct {
+}
+
+func (s *SecurityHandle) FindAllSecurity(req cveSa.RequestData) (*cveSa.ResultData, error) {
 	datas, total, err := dao.DefaultSecurityNotice.SecurityFindAll(req)
 	if err != nil {
 		iniconf.SLog.Error(err)
 		return nil, err
 	}
-	return returnNoticeData(datas, total), nil
+	return s.returnNoticeData(datas, total), nil
 }
 
-func returnNoticeData(datas []models.CveSecurityNotice, total int64) *cveSa.ResultData {
-	securityNoticeData := SecurityNoticeData(datas)
+func (s *SecurityHandle) returnNoticeData(datas []models.CveSecurityNotice, total int64) *cveSa.ResultData {
+	securityNoticeData := s.SecurityNoticeData(datas)
 	return &cveSa.ResultData{
 		SecurityNoticeList:  securityNoticeData,
 		CveDatabaseList:     make([]cveSa.DatabaseData, 0),
@@ -31,7 +34,7 @@ func returnNoticeData(datas []models.CveSecurityNotice, total int64) *cveSa.Resu
 	}
 }
 
-func GetSecurityNoticePackageByPackageName(pname string) ([]models.RCveSecurityNoticePackage, error) {
+func (s *SecurityHandle) GetSecurityNoticePackageByPackageName(pname string) ([]models.RCveSecurityNoticePackage, error) {
 	pname = strings.Replace(pname, "\n", "", -1)
 	pnames := strings.Split(pname, ",")
 
@@ -40,10 +43,10 @@ func GetSecurityNoticePackageByPackageName(pname string) ([]models.RCveSecurityN
 		iniconf.SLog.Error(err)
 		return nil, err
 	}
-	return packageData(datas), nil
+	return s.packageData(datas), nil
 }
 
-func packageData(datas []models.CveSecurityNoticePackage) []models.RCveSecurityNoticePackage {
+func (s *SecurityHandle) packageData(datas []models.CveSecurityNoticePackage) []models.RCveSecurityNoticePackage {
 	var list = make([]models.RCveSecurityNoticePackage, 0, len(datas))
 	for _, v := range datas {
 		list = append(list, models.RCveSecurityNoticePackage{CveSecurityNoticePackage: v, Updateime: v.Updateime.Format(_const.Format)})
@@ -51,25 +54,25 @@ func packageData(datas []models.CveSecurityNoticePackage) []models.RCveSecurityN
 	return list
 }
 
-func NoticeByCVEID(cveId string) ([]cveSa.SecurityNoticeData, error) {
+func (s *SecurityHandle) NoticeByCVEID(cveId string) ([]cveSa.SecurityNoticeData, error) {
 	datas, err := dao.DefaultSecurityNotice.NoticeByCveId(cveId)
 	if err != nil {
 		iniconf.SLog.Error(err)
 		return nil, err
 	}
-	return SecurityNoticeData(datas), nil
+	return s.SecurityNoticeData(datas), nil
 }
 
-func SecurityNoticeData(datas []models.CveSecurityNotice) []cveSa.SecurityNoticeData {
+func (s *SecurityHandle) SecurityNoticeData(datas []models.CveSecurityNotice) []cveSa.SecurityNoticeData {
 	var securityNoticeData = make([]cveSa.SecurityNoticeData, 0, len(datas))
 
 	for _, v := range datas {
-		securityNoticeData = append(securityNoticeData, SecurityNoticeDataOne(v))
+		securityNoticeData = append(securityNoticeData, s.SecurityNoticeDataOne(v))
 	}
 	return securityNoticeData
 }
 
-func SecurityNoticeDataOne(datas models.CveSecurityNotice) cveSa.SecurityNoticeData {
+func (s *SecurityHandle) SecurityNoticeDataOne(datas models.CveSecurityNotice) cveSa.SecurityNoticeData {
 	return cveSa.SecurityNoticeData{
 		RCveSecurityNotice: models.RCveSecurityNotice{
 			CveSecurityNotice: datas,
@@ -82,52 +85,52 @@ func SecurityNoticeDataOne(datas models.CveSecurityNotice) cveSa.SecurityNoticeD
 	}
 }
 
-func ByCveIdAndAffectedComponent(cveId, affectedComponent string) ([]cveSa.SecurityNoticeData, error) {
+func (s *SecurityHandle) ByCveIdAndAffectedComponent(cveId, affectedComponent string) ([]cveSa.SecurityNoticeData, error) {
 	datas, err := dao.DefaultSecurityNotice.NoticeByCveIdComponent(cveId, affectedComponent)
 	if err != nil {
 		iniconf.SLog.Error(err)
 		return nil, err
 	}
-	return SecurityNoticeData(datas), nil
+	return s.SecurityNoticeData(datas), nil
 }
 
-func NoticeBySecurityNoticeNo(s string) (*cveSa.SecurityNoticeData, error) {
+func (s *SecurityHandle) NoticeBySecurityNoticeNo(sec string) (*cveSa.SecurityNoticeData, error) {
 	var SAPackages = make([]cveSa.SAPackageHelper, 0)
-	securityNotice, err := dao.DefaultSecurityNotice.NoticeByNo(s)
+	securityNotice, err := dao.DefaultSecurityNotice.NoticeByNo(sec)
 	if err != nil {
 		return nil, err
 	}
 	if securityNotice == nil {
 		return nil, nil
 	}
-	snData := SecurityNoticeDataOne(*securityNotice)
+	snData := s.SecurityNoticeDataOne(*securityNotice)
 	if securityNotice.AffectedProduct != "" {
 		products := strings.Split(securityNotice.AffectedProduct, ";")
 		for _, v := range products {
-			packages, err := dao.DefaultSecurityNoticePackage.NoticePackageByNoProduct(s, v)
+			packages, err := dao.DefaultSecurityNoticePackage.NoticePackageByNoProduct(sec, v)
 			if err != nil {
 				iniconf.SLog.Error(err)
 				return &snData, nil
 			}
 			var SAPackage cveSa.SAPackageHelper
 			SAPackage.ProductName = v
-			SAPackage.Child = getSAPackageHelper(packages)
+			SAPackage.Child = s.getSAPackageHelper(packages)
 			SAPackages = append(SAPackages, SAPackage)
 		}
 	}
 	snData.PackageHelperList = SAPackages
 	snData.Description = strings.Replace(snData.Description, "\\r\\n", "\r\n", -1)
 	snData.Subject = strings.Replace(snData.Subject, "\\r\\n", "\r\n", -1)
-	references, err := dao.DefaultSecurityNoticeReference.GetReferenceByNo(s)
+	references, err := dao.DefaultSecurityNoticeReference.GetReferenceByNo(sec)
 	if err != nil {
 		iniconf.SLog.Error(err)
 		return &snData, nil
 	}
-	snData.ReferenceList = reReference(references)
+	snData.ReferenceList = s.reReference(references)
 	return &snData, nil
 }
 
-func getSAPackageHelper(datas []models.CveSecurityNoticePackage) []cveSa.SAPackageHelper {
+func (s *SecurityHandle) getSAPackageHelper(datas []models.CveSecurityNoticePackage) []cveSa.SAPackageHelper {
 	var SAPackageMap = make(map[string][]cveSa.SAPackageHelper)
 	var SAPackages = make([]cveSa.SAPackageHelper, 0)
 	if len(datas) > 0 {
@@ -152,7 +155,7 @@ func getSAPackageHelper(datas []models.CveSecurityNoticePackage) []cveSa.SAPacka
 	return SAPackages
 }
 
-func reReference(datas []models.CveSecurityNoticeReference) []models.RCveSecurityNoticeReference {
+func (s *SecurityHandle) reReference(datas []models.CveSecurityNoticeReference) []models.RCveSecurityNoticeReference {
 	var list = make([]models.RCveSecurityNoticeReference, 0, len(datas))
 	for _, v := range datas {
 		list = append(list, models.RCveSecurityNoticeReference{CveSecurityNoticeReference: v, Updateime: v.Updateime.Format(_const.Format)})

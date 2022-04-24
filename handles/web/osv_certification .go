@@ -10,7 +10,10 @@ import (
 	cveSa "cve-sa-backend/utils/entity/cve_sa"
 )
 
-func FindAllOsv(req cveSa.RequestOsv) (*cveSa.ResultOSVData, error) {
+type OsvHandle struct {
+}
+
+func (o *OsvHandle) FindAllOsv(req cveSa.RequestOsv) (*cveSa.ResultOSVData, error) {
 	datas, total, err := dao.DefaultCompatibilityOsv.OSVFindAll(req)
 	if err != nil {
 		iniconf.SLog.Error(err)
@@ -40,15 +43,15 @@ func FindAllOsv(req cveSa.RequestOsv) (*cveSa.ResultOSVData, error) {
 	return result, nil
 }
 
-func GetOsvName() (data []string, err error) {
+func (o *OsvHandle) GetOsvName() (data []string, err error) {
 	return dao.DefaultCompatibilityOsv.GetOsvName()
 }
 
-func GetType() (data []string, err error) {
+func (o *OsvHandle) GetType() (data []string, err error) {
 	return dao.DefaultCompatibilityOsv.GetType()
 }
 
-func GetOne(id int64) (*models.ROeCompatibilityOsv, error) {
+func (o *OsvHandle) GetOne(id int64) (*models.ROeCompatibilityOsv, error) {
 
 	osv, err := dao.DefaultCompatibilityOsv.GetOneOSV(&models.OeCompatibilityOsv{
 		Id: id,

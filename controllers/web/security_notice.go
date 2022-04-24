@@ -1,9 +1,9 @@
-package controllers
+package web
 
 import (
 	"net/http"
 
-	"cve-sa-backend/handles/web"
+	"cve-sa-backend/handles"
 	"cve-sa-backend/iniconf"
 	cveSa "cve-sa-backend/utils/entity/cve_sa"
 	"cve-sa-backend/utils/tools"
@@ -12,7 +12,10 @@ import (
 	"github.com/gin-gonic/gin/binding"
 )
 
-func FindAllSecurity(c *gin.Context) {
+type SecurityNoticeCon struct {
+}
+
+func (s *SecurityNoticeCon) FindAllSecurity(c *gin.Context) {
 	var req cveSa.RequestData
 
 	if err := c.ShouldBindWith(&req, binding.JSON); err != nil {
@@ -20,7 +23,7 @@ func FindAllSecurity(c *gin.Context) {
 		tools.QueryFailure(c)
 		return
 	}
-	datas, err := web.FindAllSecurity(req)
+	datas, err := handles.SecurityHandle.FindAllSecurity(req)
 	if err != nil {
 		iniconf.SLog.Error("findAllSecurityNotice :", err)
 		tools.Failure(c)
@@ -29,7 +32,7 @@ func FindAllSecurity(c *gin.Context) {
 
 	tools.Success(c, datas)
 }
-func GetSecurityNoticePackageByPackageName(c *gin.Context) {
+func (s *SecurityNoticeCon) GetSecurityNoticePackageByPackageName(c *gin.Context) {
 	var req cveSa.RequestData
 
 	if err := c.ShouldBindWith(&req, binding.JSON); err != nil {
@@ -37,7 +40,7 @@ func GetSecurityNoticePackageByPackageName(c *gin.Context) {
 		tools.QueryFailure(c)
 		return
 	}
-	datas, err := web.GetSecurityNoticePackageByPackageName(req.PackageName)
+	datas, err := handles.SecurityHandle.GetSecurityNoticePackageByPackageName(req.PackageName)
 	if err != nil {
 		iniconf.SLog.Error("getSecurityNoticePackageByPackageName :", err)
 		tools.Failure(c)
@@ -46,7 +49,7 @@ func GetSecurityNoticePackageByPackageName(c *gin.Context) {
 	tools.Success(c, datas)
 }
 
-func NoticeByCVEID(c *gin.Context) {
+func (s *SecurityNoticeCon) NoticeByCVEID(c *gin.Context) {
 	cveId, ok := c.GetQuery("cveId")
 	if !ok {
 		c.JSON(http.StatusBadRequest, "Required String parameter 'cveId' is not present")
@@ -56,7 +59,7 @@ func NoticeByCVEID(c *gin.Context) {
 		tools.Success(c, nil)
 		return
 	}
-	datas, err := web.NoticeByCVEID(cveId)
+	datas, err := handles.SecurityHandle.NoticeByCVEID(cveId)
 	if err != nil {
 		iniconf.SLog.Error("getCVEDatabaseByCVEID :", err)
 		tools.Failure(c)
@@ -65,7 +68,7 @@ func NoticeByCVEID(c *gin.Context) {
 	tools.Success(c, datas)
 }
 
-func ByCveIdAndAffectedComponent(c *gin.Context) {
+func (s *SecurityNoticeCon) ByCveIdAndAffectedComponent(c *gin.Context) {
 	cveId, ok := c.GetQuery("cveId")
 	if !ok {
 		c.JSON(http.StatusBadRequest, "Required String parameter 'cveId' is not present")
@@ -80,7 +83,7 @@ func ByCveIdAndAffectedComponent(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, "Required String parameter 'affectedComponent' is not present")
 		return
 	}
-	datas, err := web.ByCveIdAndAffectedComponent(cveId, affectedComponent)
+	datas, err := handles.SecurityHandle.ByCveIdAndAffectedComponent(cveId, affectedComponent)
 	if err != nil {
 		iniconf.SLog.Error("byCveIdAndAffectedComponent :", err)
 		tools.Failure(c)
@@ -89,7 +92,7 @@ func ByCveIdAndAffectedComponent(c *gin.Context) {
 	tools.Success(c, datas)
 }
 
-func NoticeBySecurityNoticeNo(c *gin.Context) {
+func (s *SecurityNoticeCon) NoticeBySecurityNoticeNo(c *gin.Context) {
 	securityNoticeNo, ok := c.GetQuery("securityNoticeNo")
 	if !ok {
 		c.JSON(http.StatusBadRequest, "Required String parameter 'securityNoticeNo' is not present")
@@ -99,7 +102,7 @@ func NoticeBySecurityNoticeNo(c *gin.Context) {
 		tools.Success(c, nil)
 		return
 	}
-	data, err := web.NoticeBySecurityNoticeNo(securityNoticeNo)
+	data, err := handles.SecurityHandle.NoticeBySecurityNoticeNo(securityNoticeNo)
 	if err != nil {
 		iniconf.SLog.Error("getSecurityNoticeBySecurityNoticeNo :", err)
 		tools.Failure(c)

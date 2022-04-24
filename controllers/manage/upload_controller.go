@@ -1,11 +1,11 @@
-package controllers
+package manage
 
 import (
 	"errors"
 	"net/http"
 	"strings"
 
-	"cve-sa-backend/handles/manage"
+	"cve-sa-backend/handles"
 	"cve-sa-backend/iniconf"
 
 	"gorm.io/gorm"
@@ -14,7 +14,10 @@ import (
 	"go.uber.org/zap"
 )
 
-func DeleteCVE(c *gin.Context) {
+type UploadController struct {
+}
+
+func (u *UploadController) DeleteCVE(c *gin.Context) {
 	cveId := c.PostForm("deleteCVEID")
 	packageName := c.PostForm("packageName")
 
@@ -25,7 +28,7 @@ func DeleteCVE(c *gin.Context) {
 	cveId = strings.TrimSpace(cveId)
 	packageName = strings.TrimSpace(packageName)
 
-	result, err := manage.DeleteCVE(cveId, packageName)
+	result, err := handles.UploadHandle.DeleteCVE(cveId, packageName)
 	if err != nil {
 		iniconf.Log.Error("delete cve error", zap.String("error", err.Error()))
 		c.JSON(http.StatusOK, "deleteCVE failed. An exception occurred.")
@@ -35,7 +38,7 @@ func DeleteCVE(c *gin.Context) {
 	return
 }
 
-func DeleteSA(c *gin.Context) {
+func (u *UploadController) DeleteSA(c *gin.Context) {
 	saNo := c.PostForm("deleteSAID")
 	if saNo == "" {
 		c.JSON(http.StatusOK, "Please enter CVE number.")
@@ -43,7 +46,7 @@ func DeleteSA(c *gin.Context) {
 	}
 
 	saNo = strings.TrimSpace(saNo)
-	err := manage.DeleteSA(saNo)
+	err := handles.UploadHandle.DeleteSA(saNo)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			iniconf.Log.Warn("SA NO error, manage.DeleteSA errors is:", zap.Error(err))
@@ -59,7 +62,7 @@ func DeleteSA(c *gin.Context) {
 	return
 }
 
-func GetHttpParserBeanListByCve(c *gin.Context) {
+func (u *UploadController) GetHttpParserBeanListByCve(c *gin.Context) {
 	cve := c.PostForm("cveNo")
 	packageName := c.PostForm("packageName")
 	if cve == "" {
@@ -69,7 +72,7 @@ func GetHttpParserBeanListByCve(c *gin.Context) {
 
 	cve = strings.TrimSpace(cve)
 	packageName = strings.TrimSpace(packageName)
-	result, err := manage.GetHttpParserBeanListByCve(cve, packageName)
+	result, err := handles.UploadHandle.GetHttpParserBeanListByCve(cve, packageName)
 	if err != nil {
 		iniconf.Log.Error("manage.GetHttpParserBeanListByCve error", zap.Error(err), zap.String("cve", cve), zap.String("packageName", packageName))
 		c.JSON(http.StatusOK, "GetHttpParserBeanListByCve failed. An exception occurred.")
@@ -80,7 +83,7 @@ func GetHttpParserBeanListByCve(c *gin.Context) {
 	return
 }
 
-func SyncCve(c *gin.Context) {
+func (u *UploadController) SyncCve(c *gin.Context) {
 	cveFileName := c.PostForm("cveNo")
 
 	if cveFileName == "" {
@@ -93,7 +96,7 @@ func SyncCve(c *gin.Context) {
 		cveFileName += ".xml"
 	}
 
-	result, err := manage.SyncCve(cveFileName)
+	result, err := handles.UploadHandle.SyncCve(cveFileName)
 	if err != nil {
 		iniconf.Log.Error("manage.SyncCve error:", zap.Error(err))
 		c.JSON(http.StatusOK, "SyncCve failed. An exception occurred.")
@@ -103,8 +106,8 @@ func SyncCve(c *gin.Context) {
 	return
 }
 
-func SyncHardwareCompatibility(c *gin.Context) {
-	result, err := manage.SyncHardwareCompatibility()
+func (u *UploadController) SyncHardwareCompatibility(c *gin.Context) {
+	result, err := handles.UploadHandle.SyncHardwareCompatibility()
 	if err != nil {
 		iniconf.SLog.Error("syncHardwareCompatibility failed :", err)
 		c.JSON(http.StatusOK, "syncHardwareCompatibility failed. An exception occurred."+result+err.Error())
@@ -113,8 +116,8 @@ func SyncHardwareCompatibility(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-func SyncDriverCompatibility(c *gin.Context) {
-	result, err := manage.SyncDriverCompatibility()
+func (u *UploadController) SyncDriverCompatibility(c *gin.Context) {
+	result, err := handles.UploadHandle.SyncDriverCompatibility()
 	if err != nil {
 		iniconf.SLog.Error("syncHardwareCompatibility failed :", err)
 		c.JSON(http.StatusOK, "syncHardwareCompatibility failed. An exception occurred."+result+err.Error())
@@ -123,14 +126,14 @@ func SyncDriverCompatibility(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-func TransferOldData(c *gin.Context) {
+func (u *UploadController) TransferOldData(c *gin.Context) {
 	cve := c.PostForm("saNo")
 	if cve == "" {
 		c.JSON(http.StatusOK, "SA is null. Please input SA.")
 		return
 	}
 	cve = strings.TrimSpace(cve)
-	result, err := manage.TransferData(cve)
+	result, err := handles.UploadHandle.TransferData(cve)
 	if err != nil {
 		iniconf.SLog.Error("transferOldData failed,", err)
 		c.JSON(http.StatusOK, "transferOldData failed. An exception occurred.")
@@ -139,7 +142,7 @@ func TransferOldData(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-func SyncSA(c *gin.Context) {
+func (u *UploadController) SyncSA(c *gin.Context) {
 	saFileName := c.PostForm("saNo")
 	if saFileName == "" {
 		c.JSON(http.StatusOK, "SA is null. Please input SA.")
@@ -150,7 +153,7 @@ func SyncSA(c *gin.Context) {
 		saFileName += ".xml"
 	}
 
-	result, err := manage.SyncSA(saFileName)
+	result, err := handles.UploadHandle.SyncSA(saFileName)
 	if err != nil {
 		iniconf.SLog.Error("SyncSA failed,", err)
 		c.JSON(http.StatusOK, "SyncSA failed. An exception occurred."+result)
@@ -159,8 +162,8 @@ func SyncSA(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-func SyncAll(c *gin.Context) {
-	result, err := manage.SyncAll()
+func (u *UploadController) SyncAll(c *gin.Context) {
+	result, err := handles.UploadHandle.SyncAll()
 
 	if err != nil {
 		iniconf.SLog.Error("SyncAll failed,", err)
@@ -171,8 +174,8 @@ func SyncAll(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-func SyncOsv(c *gin.Context) {
-	result, err := manage.SyncOsv()
+func (u *UploadController) SyncOsv(c *gin.Context) {
+	result, err := handles.UploadHandle.SyncOsv()
 	if err != nil {
 		iniconf.SLog.Error("syncOsv failed :", err)
 		c.JSON(http.StatusOK, "syncOsv failed. An exception occurred."+result+err.Error())

@@ -3,7 +3,8 @@ package routers
 import (
 	"net/http"
 
-	controllers "cve-sa-backend/controllers/manage"
+	"cve-sa-backend/controllers"
+	"cve-sa-backend/controllers/manage"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,20 +14,23 @@ func ManageRouters(r *gin.Engine) {
 	r.LoadHTMLGlob("./webapp/*")
 	manager := r.Group("/cve-security-notice-server")
 	{
-		manager.GET("/manager", func(context *gin.Context) {
-			context.HTML(http.StatusOK, "manager.html", nil)
-		})
-		manager.Use(managerAuth)
-		manager.POST("/deleteCVE", controllers.DeleteCVE)
-		manager.POST("/deleteSA", controllers.DeleteSA)
-		manager.POST("/syncUnCVE", controllers.SyncCve)
-		manager.POST("/getSyncCVE", controllers.GetHttpParserBeanListByCve)
+		uploadCon := controllers.Con.Manage.UploadController
+		func(uploadCon manage.UploadController) {
+			manager.GET("/manager", func(context *gin.Context) {
+				context.HTML(http.StatusOK, "manager.html", nil)
+			})
+			manager.Use(managerAuth)
+			manager.POST("/deleteCVE", uploadCon.DeleteCVE)
+			manager.POST("/deleteSA", uploadCon.DeleteSA)
+			manager.POST("/syncUnCVE", uploadCon.SyncCve)
+			manager.POST("/getSyncCVE", uploadCon.GetHttpParserBeanListByCve)
 
-		manager.POST("/syncHardware", controllers.SyncHardwareCompatibility)
-		manager.POST("/syncDriver", controllers.SyncDriverCompatibility)
-		manager.POST("/transfer", controllers.TransferOldData)
-		manager.POST("/syncAll", controllers.SyncAll)
-		manager.POST("/syncSA", controllers.SyncSA)
-		manager.POST("/syncOsv", controllers.SyncOsv)
+			manager.POST("/syncHardware", uploadCon.SyncHardwareCompatibility)
+			manager.POST("/syncDriver", uploadCon.SyncDriverCompatibility)
+			manager.POST("/transfer", uploadCon.TransferOldData)
+			manager.POST("/syncAll", uploadCon.SyncAll)
+			manager.POST("/syncSA", uploadCon.SyncSA)
+			manager.POST("/syncOsv", uploadCon.SyncOsv)
+		}(uploadCon)
 	}
 }

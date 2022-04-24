@@ -9,16 +9,19 @@ import (
 	cveSa "cve-sa-backend/utils/entity/cve_sa"
 )
 
-func FindAllCVEDatabase(req cveSa.RequestData) (*cveSa.ResultData, error) {
+type CveDatabaseHandle struct {
+}
+
+func (cv *CveDatabaseHandle) FindAllCVEDatabase(req cveSa.RequestData) (*cveSa.ResultData, error) {
 	datas, total, err := dao.DefaultCveDatabase.DatabaseFindAll(req)
 	if err != nil {
 		iniconf.SLog.Error(err)
 		return nil, err
 	}
-	return ReturnCVEDatabase(datas, total), nil
+	return cv.ReturnCVEDatabase(datas, total), nil
 }
 
-func ReturnCVEDatabase(data []models.CveDatabase, total int64) *cveSa.ResultData {
+func (cv *CveDatabaseHandle) ReturnCVEDatabase(data []models.CveDatabase, total int64) *cveSa.ResultData {
 	cveDatabaseList := make([]cveSa.DatabaseData, 0, len(data))
 	for _, v := range data {
 		rc := models.RCveDatabase{
@@ -40,7 +43,7 @@ func ReturnCVEDatabase(data []models.CveDatabase, total int64) *cveSa.ResultData
 	}
 }
 
-func GetByCveIdAndPackageName(cveId, packageName string) (*cveSa.DatabaseData, error) {
+func (cv *CveDatabaseHandle) GetByCveIdAndPackageName(cveId, packageName string) (*cveSa.DatabaseData, error) {
 	result := &cveSa.DatabaseData{}
 	cve, err := dao.DefaultCveDatabase.GetOneDatabaseTypeTwo(&models.CveDatabase{
 		CveId:       cveId,
@@ -71,7 +74,7 @@ func GetByCveIdAndPackageName(cveId, packageName string) (*cveSa.DatabaseData, e
 	return result, nil
 }
 
-func GetCVEProductPackageListByCveId(cveId string) ([]models.RCveProductPackage, error) {
+func (cv *CveDatabaseHandle) GetCVEProductPackageListByCveId(cveId string) ([]models.RCveProductPackage, error) {
 	var result []models.RCveProductPackage
 	list, _, err := dao.DefaultCveProductPackage.GetProductPackageListTypeTwo(&models.CveProductPackage{
 		CveId: cveId,
@@ -92,7 +95,7 @@ func GetCVEProductPackageListByCveId(cveId string) ([]models.RCveProductPackage,
 
 }
 
-func GetCVEProductPackageList(cveId, packageName string) ([]models.RCveProductPackage, error) {
+func (cv *CveDatabaseHandle) GetCVEProductPackageList(cveId, packageName string) ([]models.RCveProductPackage, error) {
 	var result []models.RCveProductPackage
 	list, _, err := dao.DefaultCveProductPackage.GetProductPackageListTypeTwo(&models.CveProductPackage{
 		CveId:       cveId,

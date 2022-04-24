@@ -1,7 +1,7 @@
-package controllers
+package web
 
 import (
-	"cve-sa-backend/handles/web"
+	"cve-sa-backend/handles"
 	"cve-sa-backend/iniconf"
 	cveSa "cve-sa-backend/utils/entity/cve_sa"
 	"cve-sa-backend/utils/tools"
@@ -10,10 +10,13 @@ import (
 	"github.com/gin-gonic/gin/binding"
 )
 
-func GetOsListForHardware(c *gin.Context) {
+type HardwareCompatibility struct {
+}
+
+func (h *HardwareCompatibility) GetOsListForHardware(c *gin.Context) {
 	lang := c.DefaultQuery("lang", "zh")
 
-	data, err := web.GetOsForHardware(lang)
+	data, err := handles.HardwareHandle.GetOsForHardware(lang)
 	if err != nil {
 		iniconf.SLog.Error("getOSList :", err)
 		tools.Failure(c)
@@ -23,10 +26,10 @@ func GetOsListForHardware(c *gin.Context) {
 	tools.Success(c, data)
 }
 
-func GetArchitectureListForHardware(c *gin.Context) {
+func (h *HardwareCompatibility) GetArchitectureListForHardware(c *gin.Context) {
 	lang := c.DefaultQuery("lang", "zh")
 
-	data, err := web.GetArchitectureListForHardware(lang)
+	data, err := handles.HardwareHandle.GetArchitectureListForHardware(lang)
 	if err != nil {
 		iniconf.SLog.Error("getArchitectureList :", err)
 		tools.Failure(c)
@@ -36,7 +39,7 @@ func GetArchitectureListForHardware(c *gin.Context) {
 	tools.Success(c, data)
 }
 
-func FindAllHardwareCompatibility(c *gin.Context) {
+func (h *HardwareCompatibility) FindAllHardwareCompatibility(c *gin.Context) {
 	var req cveSa.OeCompSearchRequest
 
 	if err := c.ShouldBindWith(&req, binding.JSON); err != nil {
@@ -45,7 +48,7 @@ func FindAllHardwareCompatibility(c *gin.Context) {
 		return
 	}
 
-	datas, err := web.FindAllHardwareCompatibility(req)
+	datas, err := handles.HardwareHandle.FindAllHardwareCompatibility(req)
 	if err != nil {
 		iniconf.SLog.Error(err)
 		tools.Failure(c)
@@ -55,7 +58,7 @@ func FindAllHardwareCompatibility(c *gin.Context) {
 	tools.Success(c, datas)
 }
 
-func GetHardwareCompatibilityById(c *gin.Context) {
+func (h *HardwareCompatibility) GetHardwareCompatibilityById(c *gin.Context) {
 	var Id struct {
 		Id int64 `form:"id"`
 	}
@@ -66,7 +69,7 @@ func GetHardwareCompatibilityById(c *gin.Context) {
 		return
 	}
 
-	data, err := web.GetHardwareCompatibilityById(Id.Id)
+	data, err := handles.HardwareHandle.GetHardwareCompatibilityById(Id.Id)
 	if err != nil {
 		iniconf.SLog.Error("getHardwareCompatibilityById :", err)
 		tools.Failure(c)
@@ -76,7 +79,7 @@ func GetHardwareCompatibilityById(c *gin.Context) {
 	tools.Success(c, data)
 }
 
-func GetOeHardwareAdapterListByHardwareId(c *gin.Context) {
+func (h *HardwareCompatibility) GetOeHardwareAdapterListByHardwareId(c *gin.Context) {
 	var Id struct {
 		Id int64 `form:"hardwareId"`
 	}
@@ -87,7 +90,7 @@ func GetOeHardwareAdapterListByHardwareId(c *gin.Context) {
 		return
 	}
 
-	datas, err := web.ByhardwareId(Id.Id)
+	datas, err := handles.HardwareHandle.ByhardwareId(Id.Id)
 	if err != nil {
 		iniconf.SLog.Error("getOEHardwareAdapterListByHardwareId :", err)
 		tools.Failure(c)
@@ -97,10 +100,10 @@ func GetOeHardwareAdapterListByHardwareId(c *gin.Context) {
 	tools.Success(c, datas)
 }
 
-func GetCpu(c *gin.Context) {
+func (h *HardwareCompatibility) GetCpu(c *gin.Context) {
 	lang := c.DefaultQuery("lang", "zh")
 
-	datas, err := web.GetCpuList(lang)
+	datas, err := handles.HardwareHandle.GetCpuList(lang)
 	if err != nil {
 		iniconf.SLog.Error(err)
 		tools.Failure(c)
