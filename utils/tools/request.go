@@ -16,6 +16,10 @@ func Failure(c *gin.Context) {
 	c.JSON(http.StatusOK, handleBadReturn(nil))
 }
 
+func FailureErr(c *gin.Context, err error) {
+	c.JSON(http.StatusOK, handleBadReturn(err.Error()))
+}
+
 func QueryFailure(c *gin.Context) {
 	c.JSON(http.StatusOK, queryHandleBadReturn(nil))
 }

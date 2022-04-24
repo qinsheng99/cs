@@ -6,4 +6,5 @@ type Handles struct {
 	HardwareHandle
 	OsvHandle
 	SecurityHandle
+	EsHandle
 }

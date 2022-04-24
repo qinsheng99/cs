@@ -83,3 +83,12 @@ func (c compatibilityDriver) CreateDriver(datas []models.OeCompatibilityDriver, 
 	err = tx.Model(&models.OeCompatibilityDriver{}).Create(&datas).Error
 	return
 }
+
+func (c compatibilityDriver) GetAllDataForId(id, limit, page int) (data []*models.OeCompatibilityDriver, err error) {
+	err = iniconf.GetDb().Model(&models.OeCompatibilityDriver{}).
+		Where("id > ?", id).
+		Limit(limit).
+		Offset((page - 1) * limit).
+		Find(&data).Error
+	return
+}

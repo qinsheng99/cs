@@ -23,3 +23,7 @@ func InitEs() error {
 	EsClient = client
 	return nil
 }
+
+func GetEs() *elastic.Client {
+	return EsClient
+}

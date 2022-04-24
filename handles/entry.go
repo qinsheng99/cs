@@ -22,4 +22,5 @@ var (
 	HardwareHandle    = Handles.Web.HardwareHandle
 	OsvHandle         = Handles.Web.OsvHandle
 	SecurityHandle    = Handles.Web.SecurityHandle
+	EsHandle          = Handles.Web.EsHandle
 )

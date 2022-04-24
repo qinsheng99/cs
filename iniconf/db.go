@@ -105,3 +105,7 @@ func InitGormMysql() error {
 
 	return nil
 }
+
+func GetDb() *gorm.DB {
+	return DB
+}

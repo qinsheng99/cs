@@ -6,4 +6,5 @@ type Controller struct {
 	HardwareCompatibility
 	DriverCompatibility
 	Osv
+	EsController
 }

@@ -58,4 +58,11 @@ func WebRouters(r *gin.Engine) {
 			osvCompatibility.GET("/getOne", osvCompatibilityCon.GetOne)
 		}(osvCompatibilityCon)
 	}
+
+	es := r.Group("/es")
+	esCon := controllers.Con.Web.EsController
+	func(osvCompatibilityCon web.EsController) {
+		es.GET("/refresh", esCon.Refresh)
+		es.GET("/find", esCon.Find)
+	}(esCon)
 }
