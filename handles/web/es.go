@@ -84,13 +84,15 @@ func (e *EsHandle) Find(req cveSa.OeCompSearchRequest) (data *es.DriverEsDataRes
 	var sr *elastic.SearchResult
 	var drivers []es.DriverEsData
 	page, size := utils.GetPage(req.Pages)
+	h := elastic.NewHighlight()
+	h.Field("lang").PreTags([]string{"<font color='red'>"}...).PostTags([]string{"</font>"}...)
 	sr, err = iniconf.GetEs().
 		Search(driverIndex).
 		Query(searchQuery(req)).
 		Sort("id", false).
 		From((page - 1) * size).
 		Size(size).
-		Highlight(&elastic.Highlight{}).
+		Highlight(h).
 		Do(context.Background())
 	if err != nil {
 		return nil, err
