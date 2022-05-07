@@ -64,5 +64,6 @@ func WebRouters(r *gin.Engine) {
 	func(osvCompatibilityCon web.EsController) {
 		es.GET("/refresh", esCon.Refresh)
 		es.POST("/find", esCon.Find)
+		es.GET("/delete", esCon.Delete)
 	}(esCon)
 }

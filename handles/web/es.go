@@ -20,9 +20,10 @@ type EsHandle struct {
 }
 
 const (
-	driverIndex = "driver"
+	driverIndex = "gotty_user_log"
 )
 
+// Refresh Add gotty user operation logs
 func (e *EsHandle) Refresh() error {
 	var id, limit, page = 0, 50, 1
 	t1 := time.Now()
@@ -80,31 +81,39 @@ func (e *EsHandle) Refresh() error {
 	return nil
 }
 
-func (e *EsHandle) Find(req cveSa.OeCompSearchRequest) (data *es.DriverEsDataResp, err error) {
+func (e *EsHandle) Find(req cveSa.OeCompSearchRequest) (data *es.GottyEsDataResp, err error) {
 	var sr *elastic.SearchResult
-	var drivers []es.DriverEsData
+	var drivers []es.Gotty
 	page, size := utils.GetPage(req.Pages)
-	h := elastic.NewHighlight()
-	h.Field("lang").PreTags([]string{"<font color='red'>"}...).PostTags([]string{"</font>"}...)
+	//h := elastic.NewHighlight()
+	//h.Field("lang").PreTags([]string{"<font color='red'>"}...).PostTags([]string{"</font>"}...)
 	sr, err = iniconf.GetEs().
 		Search(driverIndex).
 		Query(searchQuery(req)).
-		Sort("id", false).
+		//Sort("id", false).
 		From((page - 1) * size).
 		Size(size).
-		Highlight(h).
+		//Highlight(h).
 		Do(context.Background())
 	if err != nil {
 		return nil, err
 	}
 
 	for _, v := range sr.Hits.Hits {
-		var driver es.DriverEsData
+		var driver es.Gotty
 		_ = json.Unmarshal(v.Source, &driver)
 		drivers = append(drivers, driver)
 	}
 
-	data = &es.DriverEsDataResp{Driver: drivers, Total: sr.Hits.TotalHits.Value}
+	data = &es.GottyEsDataResp{Driver: drivers, Total: sr.Hits.TotalHits.Value}
+	return
+}
+
+func (e *EsHandle) DeleteEs(id string) (err error) {
+	_, err = iniconf.GetEs().Delete().Index(driverIndex).Id(id).Do(context.Background())
+	if err != nil {
+		return
+	}
 	return
 }
 

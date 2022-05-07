@@ -27,3 +27,17 @@ type DriverEsDataResp struct {
 	Total  int64          `json:"total"`
 	Driver []DriverEsData `json:"driver"`
 }
+
+type Gotty struct {
+	EventType     int64  `json:"eventType"`
+	Input         string `json:"input"`
+	Instance      string `json:"instance"`
+	OperationTime string `json:"operationTime"`
+	Output        string `json:"output"`
+	Ps            string `json:"ps"`
+}
+
+type GottyEsDataResp struct {
+	Total  int64   `json:"total"`
+	Driver []Gotty `json:"driver"`
+}

@@ -37,3 +37,14 @@ func (*EsController) Find(c *gin.Context) {
 	}
 	tools.Success(c, datas)
 }
+
+func (*EsController) Delete(c *gin.Context) {
+	id := c.Query("id")
+
+	err := handles.EsHandle.DeleteEs(id)
+	if err != nil {
+		tools.FailureErr(c, err)
+		return
+	}
+	tools.Success(c, "成功")
+}
