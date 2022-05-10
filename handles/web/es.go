@@ -20,7 +20,7 @@ type EsHandle struct {
 }
 
 const (
-	driverIndex = "gotty_user_log"
+	driverIndex = "gotty_user_log-2022.05"
 )
 
 // Refresh Add gotty user operation logs
